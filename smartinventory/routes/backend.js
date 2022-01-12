@@ -122,11 +122,11 @@ router.post('/create_category', async (req, res) => {
 })
 
 // Edit Category
-router.get('/edit_category/:id/:id3/:id4', (req, res) => {
+router.get('/edit_category/:id', async (req, res) => {
 
     const objID = new objectId(req.params.id) 
     
-    const category = await db.collection('category').find({ "_id": xxx }).toArray()
+    const category = await db.collection('category').find({ "_id": objID }).toArray()
     
 
     res.render(
@@ -134,10 +134,81 @@ router.get('/edit_category/:id/:id3/:id4', (req, res) => {
         { 
             title: 'Edit Category', 
             heading: 'Edit Category',
-            layout: './layouts/backend'
+            layout: './layouts/backend',
+            data: category
         }
     )
 })
+
+
+// Edit Category PUT บันทึกเข้าเมื่อแก้ไขแล้ว
+router.put('/edit_category/:id/:resource', async (req, res) => {
+    // console.log(req.params.id);
+
+    const objID = new objectId(req.params.id)
+    const category = await db.collection('category').find({ "_id": objID }).toArray()
+    
+// รับค่าจากฟอร์ม
+    // let CategoryID = req.body.CategoryID  // ไม่ต่องกรอกจากฟอร์ม
+    let CategoryName = req.body.CategoryName
+    let CategoryStatus = req.body.CategoryStatus
+    let curdatetime = moment(new Date()).format("YYYY-MM-DD HH:mm:ss")
+    let errors = false
+
+    // console.log(CategoryID + CategoryName + CategoryStatus)
+
+    // Validate ฟอร์มว่าป้อนข้อมูลครบหรือยัง
+    if(CategoryName.length === 0 || CategoryStatus === '')
+    {
+        errors = true
+        // แสดงข้อความแจ้งเตือน
+        req.flash('error','ป้อนข้อมูลในฟิลด์ให้ครบก่อน')
+        // ให้ทำการ reload ฟอร์ม
+        res.render(
+            'pages/backend/edit_category', 
+            { 
+                title: 'Create Category', 
+                heading: 'Create Category',
+                layout: './layouts/backend',
+                data: category
+            }
+        )
+    }else{
+        // Insert to mongodb
+        await db.collection('category').updateOne({ _id: objID },
+            {
+                $set: {
+                    CategoryName: CategoryName,
+                    CategoryStatus: parseInt(CategoryStatus),
+                    ModifiedDate: curdatetime  
+                }                
+            }            
+        )
+        // แสดงข้อความแจ้งเตือน
+        req.flash('success','แก้ไขหมวดหมู่สินค้าเรียบร้อยแล้ว')
+
+        res.render(
+            'pages/backend/edit_category', 
+            { 
+                title: 'Edit Category', 
+                heading: 'Edit Category',
+                layout: './layouts/backend',
+                data: category
+            }
+        )
+    }
+
+    
+
+})
+
+// DELETE Category
+    router.delete('/delete_category/:id/:resource', async (req, res) => {
+        // console.log(req.params.id);
+        const objID = new objectId(req.params.id)
+        await db.collection('category').deleteOne({ "_id": objID })
+        res.redirect('/backend/category')
+    })
 
 
 // CRUD product ================================================
