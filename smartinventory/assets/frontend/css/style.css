@@ -1,5 +1,10 @@
 body{
-    font-family: 'Poppins', sans-serif;
+    font-family: Poppins, 'Noto Sans Thai', sans-serif;
+}
+
+
+.navbar-light .navbar-nav .nav-link{
+    font-size: 18px;
 }
 
 section.footer{
